@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoneyMentor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">MoneyMentor</div>
+  <nav>
+    <a href="#explain"   class="nav-link active" data-tab="tab-explain">Explain Concept</a>
+    <a href="#budget"    class="nav-link"         data-tab="tab-budget">Budget Planner</a>
+    <a href="#scenarios" class="nav-link"         data-tab="tab-scenarios">Scenarios</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Premium Top Cover Banner -->
+  <img src="{{ url_for('static', filename='financial_banner.png') }}" class="cover-banner" alt="Wealth Dashboard Banner" />
+
+  <!-- ── Tab: Explain Concept ──────────────────────────────────── -->
+  <section id="tab-explain" class="tab active">
+    <div class="card">
+      <div class="intro-grid">
+        <div>
+          <h2>Explain a Financial Concept</h2>
+          <p class="subtitle">Get a plain-language explanation of any finance term — from EMI to CAGR to Inflation.</p>
+          <div class="input-row">
+            <input type="text" id="conceptInput" placeholder="e.g. compound interest, SIP, inflation, PPF …" />
+            <button onclick="explainConcept()">Explain ➜</button>
+          </div>
+          <div class="quick-chips">
+            <span onclick="quickExplain('Compound Interest')">Compound Interest</span>
+            <span onclick="quickExplain('SIP')">SIP</span>
+            <span onclick="quickExplain('Emergency Fund')">Emergency Fund</span>
+            <span onclick="quickExplain('Credit Score')">Credit Score</span>
+            <span onclick="quickExplain('Inflation')">Inflation</span>
+            <span onclick="quickExplain('PPF')">PPF</span>
+          </div>
+          <div id="explainOutput" class="output hidden"></div>
+        </div>
+        <div>
+          <img src="{{ url_for('static', filename='robot_advisor.png') }}" class="advisor-art" alt="AI Financial Assistant" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Educational Financial Facts Grid -->
+    <div class="fact-title-row">
+      <h3 style="color:#ffffff; margin: 0 0 5px 0;">🧠 Did You Know? — Financial Literacy Corner</h3>
+      <p style="color:var(--muted); font-size:0.85rem; margin:0;">Expand your money intelligence with these key rules of wealth accumulation.</p>
+    </div>
+    
+    <div class="fact-container">
+      <div class="fact-card">
+        <span class="fact-icon">➗</span>
+        <div class="fact-title">The Rule of 72</div>
+        <div class="fact-desc">Divide 72 by your annual interest rate to find out exactly how many years it takes to double your money. E.g. at 12% returns, money doubles in 6 years.</div>
+      </div>
+      <div class="fact-card">
+        <span class="fact-icon">📊</span>
+        <div class="fact-title">The 50/30/20 Rule</div>
+        <div class="fact-desc">A standard budgeting rule of thumb: allocate 50% of monthly income to Needs (essential bills), 30% to Wants (leisure), and 20% to Savings & investments.</div>
+      </div>
+      <div class="fact-card">
+        <span class="fact-icon">🛡️</span>
+        <div class="fact-title">Emergency Buffer</div>
+        <div class="fact-desc">Before making risk-heavy investments, aim to accumulate at least 3 to 6 months of absolute basic expenses in a high-interest savings or liquid mutual fund.</div>
+      </div>
+      <div class="fact-card">
+        <span class="fact-icon">🌱</span>
+        <div class="fact-title">Power of SIPs</div>
+        <div class="fact-desc">Starting a Mutual Fund SIP early yields compounding benefits. Investing ₹5,000/month at 12% returns for 20 years builds an impressive wealth of over ₹50 Lakhs.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tab: Budget Planner ───────────────────────────────────── -->
+  <section id="tab-budget" class="tab">
+    <div class="card">
+      <h2>Personalised Budget Planner</h2>
+      <p class="subtitle">Enter your income, expenses, and goals to get a customised financial plan.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Monthly Income (₹)</label>
+          <input type="number" id="income" placeholder="e.g. 50000" />
+        </div>
+        <div class="form-group">
+          <label>Financial Goals</label>
+          <input type="text" id="goals" placeholder="e.g. save ₹1L for emergency fund" />
+        </div>
+      </div>
+
+      <h3>Monthly Expenses</h3>
+      <div id="expenseItems">
+        <div class="expense-row">
+          <input type="text"   placeholder="Category (e.g. Rent)"   class="exp-cat" value="Rent" />
+          <input type="number" placeholder="Amount (₹)"             class="exp-amt" value="12000" />
+          <button class="del-btn" onclick="removeExpense(this)">✕</button>
+        </div>
+        <div class="expense-row">
+          <input type="text"   placeholder="Category" class="exp-cat" value="Food" />
+          <input type="number" placeholder="Amount"   class="exp-amt" value="6000" />
+          <button class="del-btn" onclick="removeExpense(this)">✕</button>
+        </div>
+        <div class="expense-row">
+          <input type="text"   placeholder="Category" class="exp-cat" value="Transport" />
+          <input type="number" placeholder="Amount"   class="exp-amt" value="3000" />
+          <button class="del-btn" onclick="removeExpense(this)">✕</button>
+        </div>
+      </div>
+      <button class="secondary" onclick="addExpense()">+ Add Expense</button>
+
+      <br /><button onclick="generateBudget()" style="margin-top:1rem">Generate Plan ➜</button>
+
+      <div id="budgetSummaryCards" class="summary-cards hidden"></div>
+      <canvas id="budgetChart" class="hidden" width="400" height="220"></canvas>
+      <div id="budgetOutput" class="output hidden"></div>
+    </div>
+  </section>
+
+  <!-- ── Tab: Scenarios ────────────────────────────────────────── -->
+  <section id="tab-scenarios" class="tab">
+
+    <!-- Savings -->
+    <div class="card">
+      <h2>Savings Growth Scenario</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Monthly Savings (₹)</label>
+          <input type="number" id="s_monthly" placeholder="e.g. 5000" value="5000" />
+        </div>
+        <div class="form-group">
+          <label>Annual Interest Rate (%)</label>
+          <input type="number" id="s_rate" placeholder="e.g. 7" value="7" />
+        </div>
+        <div class="form-group">
+          <label>Target Amount (₹)</label>
+          <input type="number" id="s_target" placeholder="e.g. 300000" value="300000" />
+        </div>
+        <div class="form-group">
+          <label>Duration (years)</label>
+          <input type="number" id="s_years" placeholder="e.g. 5" value="5" />
+        </div>
+      </div>
+      <button onclick="runSavings()">Analyse ➜</button>
+      <canvas id="savingsChart" class="hidden" width="400" height="200"></canvas>
+      <div id="savingsOutput" class="output hidden"></div>
+    </div>
+
+    <!-- Debt -->
+    <div class="card">
+      <h2>Debt Repayment Scenario</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Total Debt (₹)</label>
+          <input type="number" id="d_debt" value="200000" />
+        </div>
+        <div class="form-group">
+          <label>Monthly Payment (₹)</label>
+          <input type="number" id="d_payment" value="5000" />
+        </div>
+        <div class="form-group">
+          <label>Interest Rate (% p.a.)</label>
+          <input type="number" id="d_rate" value="12" />
+        </div>
+        <div class="form-group">
+          <label>Extra Payment / month (₹)</label>
+          <input type="number" id="d_extra" value="2000" />
+        </div>
+      </div>
+      <button onclick="runDebt()">Analyse ➜</button>
+      <div id="debtSummary" class="summary-cards hidden"></div>
+      <div id="debtOutput" class="output hidden"></div>
+    </div>
+
+    <!-- Investment -->
+    <div class="card">
+      <h2>Investment Planning Scenario</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Monthly Investment (₹)</label>
+          <input type="number" id="i_amount" value="5000" />
+        </div>
+        <div class="form-group">
+          <label>Risk Appetite</label>
+          <select id="i_risk">
+            <option value="low">Low (FD, Bonds)</option>
+            <option value="moderate" selected>Moderate (Balanced)</option>
+            <option value="high">High (Equity / Stocks)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Investment Horizon (years)</label>
+          <input type="number" id="i_years" value="10" />
+        </div>
+        <div class="form-group">
+          <label>Goal</label>
+          <input type="text" id="i_goal" value="retirement corpus" />
+        </div>
+      </div>
+      <button onclick="runInvestment()">Analyse ➜</button>
+      <canvas id="investChart" class="hidden" width="400" height="200"></canvas>
+      <div id="investOutput" class="output hidden"></div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  Built with 🐍 Python · Flask · Open-Source LLM &nbsp;|&nbsp; MoneyMentor
+</footer>
+
+<script>
+// ── Tab Navigation ────────────────────────────────────────────────
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    link.classList.add('active');
+    document.getElementById(link.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Helpers ───────────────────────────────────────────────────────
+function show(id)        { document.getElementById(id).classList.remove('hidden'); }
+function hide(id)        { document.getElementById(id).classList.add('hidden'); }
+function setText(id, txt){ const el = document.getElementById(id); el.innerHTML = md(txt); show(id); }
+function setLoader(id)   { const el = document.getElementById(id); el.innerHTML = '<div class="loader"></div>Thinking…'; show(id); }
+
+function md(text) {
+  // Minimal markdown-like: bold, bullets, newlines
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^\* (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/\n/g, '<br/>');
+}
+
+async function post(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+// ── Explain Concept ───────────────────────────────────────────────
+function quickExplain(c) { document.getElementById('conceptInput').value = c; explainConcept(); }
+
+async function explainConcept() {
+  const concept = document.getElementById('conceptInput').value.trim();
+  if (!concept) return alert('Please enter a concept.');
+  setLoader('explainOutput');
+  const data = await post('/api/explain', { concept });
+  setText('explainOutput', data.explanation || data.error);
+}
+
+// ── Budget Planner ────────────────────────────────────────────────
+function addExpense() {
+  const row = document.createElement('div');
+  row.className = 'expense-row';
+  row.innerHTML = `<input type="text" placeholder="Category" class="exp-cat" />
+                   <input type="number" placeholder="Amount (₹)" class="exp-amt" />
+                   <button class="del-btn" onclick="removeExpense(this)">✕</button>`;
+  document.getElementById('expenseItems').appendChild(row);
+}
+function removeExpense(btn) { btn.parentElement.remove(); }
+
+let budgetChartInstance = null;
+
+async function generateBudget() {
+  const income = parseFloat(document.getElementById('income').value);
+  const goals  = document.getElementById('goals').value;
+  if (!income) return alert('Please enter your monthly income.');
+
+  const expenses = {};
+  document.querySelectorAll('.expense-row').forEach(row => {
+    const cat = row.querySelector('.exp-cat').value.trim();
+    const amt = parseFloat(row.querySelector('.exp-amt').value) || 0;
+    if (cat && amt > 0) expenses[cat] = amt;
+  });
+
+  setLoader('budgetOutput');
+  hide('budgetSummaryCards'); hide('budgetChart');
+
+  const data = await post('/api/budget', { income, expenses, goals });
+  if (data.error) { setText('budgetOutput', data.error); return; }
+
+  // Summary cards
+  document.getElementById('budgetSummaryCards').innerHTML = `
+    <div class="stat-card green"><div class="stat-label">Monthly Income</div><div class="stat-value">₹${fmt(data.income)}</div></div>
+    <div class="stat-card red"><div class="stat-label">Total Expenses</div><div class="stat-value">₹${fmt(data.total_expenses)}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Surplus</div><div class="stat-value">₹${fmt(data.surplus)}</div></div>
+    <div class="stat-card yellow"><div class="stat-label">Savings Rate</div><div class="stat-value">${data.savings_rate}%</div></div>
+  `;
+  show('budgetSummaryCards');
+
+  // Doughnut chart
+  const ctx = document.getElementById('budgetChart').getContext('2d');
+  if (budgetChartInstance) budgetChartInstance.destroy();
+  budgetChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: [...Object.keys(expenses), 'Surplus'],
+      datasets: [{
+        data: [...Object.values(expenses), Math.max(data.surplus, 0)],
+        backgroundColor: ['#00e676','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#6366f1'],
+        borderWidth: 2,
+        borderColor: '#0f172a'
+      }]
+    },
+    options: { 
+      responsive: true, 
+      plugins: { 
+        legend: { 
+          position: 'right', 
+          labels: { color: '#f1f5f9', font: { family: "'Inter', sans-serif", size: 11 } } 
+        } 
+      } 
+    }
+  });
+  show('budgetChart');
+
+  setText('budgetOutput', data.ai_plan);
+}
+
+// ── Savings Scenario ──────────────────────────────────────────────
+let savingsChartInst = null;
+
+async function runSavings() {
+  setLoader('savingsOutput'); hide('savingsChart');
+  const body = {
+    monthly_savings: +document.getElementById('s_monthly').value,
+    interest_rate:   +document.getElementById('s_rate').value,
+    target_amount:   +document.getElementById('s_target').value,
+    years:           +document.getElementById('s_years').value,
+  };
+  const data = await post('/api/scenario/savings', body);
+
+  // Chart
+  const labels   = data.projections.map(r => `Year ${r.year}`);
+  const balances = data.projections.map(r => r.balance);
+  const deposited= data.projections.map(r => r.total_deposited);
+
+  const ctx = document.getElementById('savingsChart').getContext('2d');
+  if (savingsChartInst) savingsChartInst.destroy();
+  savingsChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Total Balance', data: balances,  backgroundColor: '#6366f1', borderRadius: 6 },
+        { label: 'Total Deposited', data: deposited, backgroundColor: 'rgba(99, 102, 241, 0.25)', borderRadius: 6 },
+      ]
+    },
+    options: { 
+      responsive: true, 
+      plugins: { 
+        legend: { 
+          position: 'top', 
+          labels: { color: '#f1f5f9', font: { family: "'Inter', sans-serif" } } 
+        } 
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', font: { family: "'Inter', sans-serif" } } },
+        y: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', font: { family: "'Inter', sans-serif" } } }
+      }
+    }
+  });
+  show('savingsChart');
+  setText('savingsOutput', data.ai_insight);
+}
+
+// ── Debt Scenario ─────────────────────────────────────────────────
+async function runDebt() {
+  setLoader('debtOutput'); hide('debtSummary');
+  const body = {
+    total_debt:       +document.getElementById('d_debt').value,
+    monthly_payment:  +document.getElementById('d_payment').value,
+    interest_rate:    +document.getElementById('d_rate').value,
+    extra_payment:    +document.getElementById('d_extra').value,
+  };
+  const data = await post('/api/scenario/debt', body);
+
+  document.getElementById('debtSummary').innerHTML = `
+    <div class="stat-card red"><div class="stat-label">Months (current)</div><div class="stat-value">${data.base.months}</div></div>
+    <div class="stat-card green"><div class="stat-label">Months (with extra)</div><div class="stat-value">${data.with_extra.months}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Months Saved</div><div class="stat-value">${data.months_saved}</div></div>
+    <div class="stat-card yellow"><div class="stat-label">Interest Saved</div><div class="stat-value">₹${fmt(data.interest_saved)}</div></div>
+  `;
+  show('debtSummary');
+  setText('debtOutput', data.ai_insight);
+}
+
+// ── Investment Scenario ───────────────────────────────────────────
+let investChartInst = null;
+
+async function runInvestment() {
+  setLoader('investOutput'); hide('investChart');
+  const body = {
+    monthly_investment: +document.getElementById('i_amount').value,
+    risk_appetite:       document.getElementById('i_risk').value,
+    years:              +document.getElementById('i_years').value,
+    goal:                document.getElementById('i_goal').value,
+  };
+  const data = await post('/api/scenario/investment', body);
+
+  const proj   = data.projection.year_by_year || [];
+  const labels = proj.map(r => `Year ${r.year}`);
+  const values = proj.map(r => r.balance);
+  const inv    = proj.map(r => r.total_deposited);
+
+  const ctx = document.getElementById('investChart').getContext('2d');
+  if (investChartInst) investChartInst.destroy();
+  investChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Portfolio Value', data: values, borderColor: '#6366f1', borderWidth: 3, fill: true, backgroundColor: 'rgba(99, 102, 241, 0.08)', tension: 0.3 },
+        { label: 'Amount Invested', data: inv, borderColor: '#00e676', borderWidth: 2, fill: false, tension: 0.1 },
+      ]
+    },
+    options: { 
+      responsive: true, 
+      plugins: { 
+        legend: { 
+          position: 'top', 
+          labels: { color: '#f1f5f9', font: { family: "'Inter', sans-serif" } } 
+        } 
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', font: { family: "'Inter', sans-serif" } } },
+        y: { grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#94a3b8', font: { family: "'Inter', sans-serif" } } }
+      }
+    }
+  });
+  show('investChart');
+  setText('investOutput', data.ai_insight);
+}
+
+function fmt(n) { return Number(n).toLocaleString('en-IN'); }
+</script>
+</body>
+</html>
